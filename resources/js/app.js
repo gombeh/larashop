@@ -4,9 +4,14 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
+import InstantSearch from 'vue-instantsearch';
 require('./bootstrap');
 
+
 window.Vue = require('vue');
+
+Vue.use(InstantSearch);
+
 
 /**
  * The following block of code may be used to automatically register your
@@ -20,6 +25,7 @@ window.Vue = require('vue');
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component('algolia-autocomplete', require('./components/AlgoliaAutocomplete.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

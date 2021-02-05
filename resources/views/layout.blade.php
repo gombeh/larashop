@@ -25,11 +25,13 @@
 
 
 <body class="@yield('body-class', '')">
-    @include('partials.nav')
-
-    @yield('content')
-
-    @include('partials.footer')
+    <div id="app">
+        @include('partials.nav')
+    
+        @yield('content')
+    
+        @include('partials.footer')
+    </div>
 
     @yield('extra-js')
 
