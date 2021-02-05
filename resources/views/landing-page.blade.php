@@ -21,7 +21,7 @@
             <header class="with-background">
                 <div class="top-nav container">
                     <div class="top-nav-left">
-                        <div class="logo">Larashop</div>
+                        <div class="logo">Larashop Test</div>
                         {{ menu('main', 'partials.menus.main') }}
                     </div>
                     <div class=top-nav-right">

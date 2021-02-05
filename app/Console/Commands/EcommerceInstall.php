@@ -135,7 +135,7 @@ class EcommerceInstall extends Command
         ]);
 
         try {
-            $this->call('scout:clear', [
+            $this->call('scout:flush', [
                 'model' => 'App\\Product',
             ]);
 

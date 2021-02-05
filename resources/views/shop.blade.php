@@ -2,6 +2,10 @@
 
 @section('title', 'Products')
 
+@section('extra-css')
+    <link rel="stylesheet" href="{{ asset('css/algolia.css') }}">
+@endsection
+
 @section('content')
 
     @component('components.breadcrumbs')
@@ -57,6 +61,13 @@
         </div>
     </div>
 
+@endsection
+
+@section('extra-js')
+    <!-- Include AlgoliaSearch JS Client v3 and autocomplete.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@3/dist/algoliasearchLite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/autocomplete.js/0/autocomplete.min.js"></script>
+    <script src="{{ asset('js/algolia.js') }}"></script>
 @endsection
 
  
