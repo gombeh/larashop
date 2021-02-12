@@ -23,7 +23,6 @@ class CouponsController extends Controller
         if(!$coupon) {
             return redirect()->back()->withErrors('Invalid coupon code. Please try again.');
         }
-
         session()->put('coupon', [
             'name' => $coupon->code,
             'discount' => $coupon->discount(Cart::subtotal()),

@@ -1,17 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Http\Requests\CheckoutRequest;
-use App\Mail\OrderPlaced;
 use App\Order;
-use App\OrderProduct;
 use Exception;
+use App\Product;
+use App\OrderProduct;
+use App\Mail\OrderPlaced;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Http\Requests\CheckoutRequest;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Cartalyst\Stripe\Laravel\Facades\Stripe;
 use Cartalyst\Stripe\Exception\CardErrorException;
-use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -48,7 +48,7 @@ class CheckoutController extends Controller
         //
     }
 
-    /**
+        /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -56,8 +56,13 @@ class CheckoutController extends Controller
      */
     public function store(CheckoutRequest $request)
     {
+        // Check race condition when there are less items available to purchase
+        if ($this->productsAreNoLongerAvailable()) {
+            return back()->withErrors('Sorry! One of the items in your cart is no longer avialble.');
+        }
+
         $contents = Cart::content()->map(function ($item) {
-            return $item->model->slug . ', ' . $item->qty;
+            return $item->model->slug.', '.$item->qty;
         })->values()->toJson();
 
         try {
@@ -77,22 +82,16 @@ class CheckoutController extends Controller
             $order = $this->addToOrdersTables($request, null);
             Mail::send(new OrderPlaced($order));
 
-            //successfull
+            // decrease the quantities of all the products in the cart
+            $this->decreaseQuantities();
+
             Cart::instance('default')->destroy();
             session()->forget('coupon');
-            return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
-        } catch (Exception $e) {
 
-            // return back()->withErrors('Error! ' . $e->getMessage());
-            // dd($e);
-            //becuase iam live in mother fucker iran
-            if ($e) {
-                $order = $this->addToOrdersTables($request, $e->getMessage());
-                Mail::send(new OrderPlaced($order)); 
-                Cart::instance('default')->destroy();
-                session()->forget('coupon');
-                return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
-            }
+            return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
+        } catch (CardErrorException $e) {
+            $this->addToOrdersTables($request, $e->getMessage());
+            return back()->withErrors('Error! ' . $e->getMessage());
         }
     }
 
@@ -173,5 +172,24 @@ class CheckoutController extends Controller
         }
 
         return $order;
+    }
+
+    private function decreaseQuantities() {
+        foreach(Cart::content() as $item) {
+            $product = Product::find($item->id);
+            $product->update(['quantity' => ($product->quantity - $item->qty)]);
+        }
+    }
+
+    protected function productsAreNoLongerAvailable()
+    {
+        foreach (Cart::content() as $item) {
+            $product = Product::find($item->model->id);
+            if ($product->quantity < $item->qty) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -52,8 +52,10 @@ class CartController extends Controller
             return redirect()->route('cart.index')
             ->with('success_message', 'Item is already in your cart!');
         }
+
+        $product = Product::findOrFail($request->id);
         
-        Cart::add($request->id, $request->name, 1, $request->price)->associate('App\Product');
+        Cart::add($product->id, $product->name, 1, $product->price)->associate('App\Product');
         return redirect()->route('cart.index')->with('success_message', 'Item was added to your card!');
     }
 
@@ -89,6 +91,7 @@ class CartController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'quantity' => 'required|numeric|between:1,5'
         ]);
@@ -96,6 +99,11 @@ class CartController extends Controller
         if($validator->fails()) {
             session()->flash('errors', collect(['Quantity must be between 1 and 5.']));
             return response()->json(['success' => false], 400);
+        }
+
+        if($request->quantity > $request->productQuantity) {
+            session()->flash('errors', collect(['We currently do not have enough items in stock.']));
+            return response()->json(['success' => false], 400); 
         }
 
         Cart::update($id, $request->quantity);
@@ -112,8 +120,10 @@ class CartController extends Controller
      */
     public function destroy($id)
     {
-        session()->forget('coupon');
         Cart::remove($id);
+        if(Cart::count() == 0) {
+            session()->forget('coupon');
+        }
         return back()->with('success_message', 'Item has been removed!');
     }
 

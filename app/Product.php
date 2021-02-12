@@ -10,7 +10,11 @@ use Nicolaslopezj\Searchable\SearchableTrait;
 class Product extends Model
 {
     use SearchableTrait;
-    use Searchable;
+    // use Searchable;
+
+    // protected $fillable = ['quantity'];
+
+    protected $guarded = [];
 
     /**
      * Searchable rules.
@@ -37,7 +41,7 @@ class Product extends Model
     }
 
     public function presentPrice() {
-        return '$' . number_format($this->price, 2);
+        return '$' . number_format(($this->price / 100), 2);
     }
 
     public function scopeMightAlsoLike($query) {
@@ -59,4 +63,5 @@ class Product extends Model
 
         return array_merge($array, $extraFields);
     }
+
 }

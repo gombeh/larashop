@@ -55,7 +55,7 @@
                                 </form>
                             </div>
                             <div>
-                                <select class="quantity" data-id="{{ $item->rowId }}">
+                                <select class="quantity" data-id="{{ $item->rowId }}" data-productQuantity="{{ $item->model->quantity }}">
                                     @for ($i = 1; $i < 5 + 1; $i++)
                                         <option {{ $item->qty == $i ?'selected' :'' }}>{{ $i }}</option>  
                                     @endfor
@@ -90,7 +90,11 @@
                     <div>
                         Subtotal <br>
                         @if (session()->has('coupon'))
-                            Discount <br>({{ session()->get('coupon')['name'] }}) : 
+                            Code ({{ session()->get('coupon')['name'] }}):<br>                            <form action="{{ route('coupons.destroy') }}" method="post" style="display: inline">
+                                @csrf
+                                @method('delete')
+                                <button type="submit" style="font-size: 14px">Remove</button>
+                            </form> 
                             <br><hr>
                             New Subtotal<br>               
                         @endif
@@ -103,11 +107,6 @@
                         @if (session()->has('coupon'))
                             -{{ presentPrice($discount) }}
                             <br>
-                            <form action="{{ route('coupons.destroy') }}" method="post" style="display: inline">
-                                @csrf
-                                @method('delete')
-                                <button type="submit" style="font-size: 14px">Remove</button>
-                            </form>
                             <br><hr>
                             {{ presentPrice($newSubtotal) }}<br>       
                         @endif
@@ -195,10 +194,12 @@
             const className = document.querySelectorAll('.quantity');
             Array.from(className).forEach(function(element) {
                 const id = element.getAttribute('data-id');
+                const productQuantity = element.getAttribute('data-productQuantity');
                 element.addEventListener('change', function() {
 
                     axios.patch(`/cart/${id}`, {
                             quantity: this.value,
+                            productQuantity: productQuantity
                     }).then(function(response) {
                         window.location.href = '{{ route('cart.index') }}';
                     }).catch(function($error) {
